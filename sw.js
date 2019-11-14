@@ -1,70 +1,23 @@
 
-//Ciclo de vida del SW
-
-self.addEventListener('install', event =>{
-
-    // Descargar archivos de js, css, assests, etc
-    // Creamos un Cache
-    console.log('SW: Instalando SW');
-
-    const instalacion = new Promise( (resolve, reject) => {
-
-        setTimeout(()=> {
-            console.log('SW: Instalaciones terminadas');
-            self.skipWaiting(); // Ayuda a que no se haga el skip de forma manual en el navegador
-            resolve();
-        }, 1);
-
-    });
 
 
-    event.waitUntil( instalacion ); // Espera hasta que la fase de instalacion termine para pasar con Activado
+self.addEventListener('install', e =>{
+    // Con OPEN si no existe lo crea, aqui creamos el APP_SHELL cache
+    // donde se guarda todo lo necesario para que la app viva.
+    const cacheProm = caches.open('cache-1')
+        .then( cache => {
 
+            return cache.addAll([
+                '/index.html',
+                '/css/style.css',
+                '/img/main.jpg',
+                'https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css',
+                '/js/app.js'
+            ]);
 
-});
+        });
+    
 
-
-//Cuando el SW toma el control de la app
-self.addEventListener('activate', event =>{
-   
-    // Borrar cache viejo
-
-    console.log('SW: Activo y listo para controlar la app');
-
-
-});
-
-
-//Manejo de peticiones HTTP
-self.addEventListener('fetch', event =>{
-   
-    //Aplicar las estrategias del cache
-    /*console.log('SW:', event.request.url );
-
-    if ( event.request.url.includes('https://reqres.in/') ) {
-
-        const resp = new Response(`{ ok: false, mensajes: 'jajajaja' }`);
-
-        event.respondWith(resp );
-
-    }*/
-
-});
-
-// SYNC: Recuperamos la conexión a internet
-self.addEventListener('sync', event => {
-
-    console.log('Tenemos conexión');
-    console.log(event);
-    console.log(event.tag);
-
-
-});
-
-// PUSH: Manejar las push notifications
-self.addEventListener('push', event => {
-
-    console.log('Notificación recibida');
-
+    e.waitUntil( cacheProm );
 
 });

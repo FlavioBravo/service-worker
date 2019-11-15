@@ -53,6 +53,7 @@ self.addEventListener('install', e =>{
 
     e.waitUntil( Promise.all([cacheProm, cacheInmutable]) );
 
+
 });
 
 
@@ -61,13 +62,10 @@ self.addEventListener('fetch', e =>{
 
 
 
-    // 3-Network with Cache fallback: primero se va al web para obtener el recurso, si lo obtiene muestralo sino
-    // lo obtiene ve al cache a ver si existe allí.
-    
 
-    // 2- Cache with Network fallback: primero intenta leer en el cache, si no lo encuentra va a la web a buscarlo.
+    // 2- Cache with Network fallback: primo intenta leer en el cache, si no lo encuentra va a la web a buscarlo.
     // Desventaja: se mezcla el APP_SHELL(recursos importantes para la web) con recursos dinamicos.
-    /*const respuesta = caches.match( e.request )
+    const respuesta = caches.match( e.request )
         .then( res => {
 
             if( res ) return res;
@@ -93,7 +91,7 @@ self.addEventListener('fetch', e =>{
 
 
 
-    e.respondWith( respuesta );*/
+    e.respondWith( respuesta );
 
 
     // 1- Cache Only: Es usada cuando toda la app será servida desde el cache, no accedera a la web.

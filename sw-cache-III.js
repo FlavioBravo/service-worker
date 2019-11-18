@@ -61,27 +61,11 @@ self.addEventListener('install', e =>{
 
 self.addEventListener('fetch', e =>{
 
-    //4- Cache with network update
-    // Cuando el Rendimiento es crítico
-    // Siempre estarán un paso atrás
-    if( e.request.url.includes('bootstrap') ){
-        return e.respondWith( caches.match( e.request ) );
-    }
-
-    const respuesta = caches.open( CACHE_STATIC_NAME ).then( cache => {
-
-        fetch( e.request ).then( newRes => cache.put( e.request, newRes ));
-        return cache.match( e.request );
-
-    });
-
-    e.respondWith( respuesta );
-
     // 3-Network with Cache fallback: primero se va al web para obtener el recurso, si lo obtiene guardalo en el
     //cache (DYNAMIC) y muestralo sino lo obtiene ve al cache a ver si existe allí.
     // Desventaja: siempre trae el info mas actual, o sea siempre hace un consumo de datos y es mucho mas lenta
     // que el cache first. Si estas en un internet lento va pasar segundos para traer info o error de lentitud. 
-    /*const respuesta = fetch( e.request ).then( res => {
+    const respuesta = fetch( e.request ).then( res => {
 
         if( !res ) return caches.match( e.request );
         //console.log('Fetch', res );
@@ -101,7 +85,7 @@ self.addEventListener('fetch', e =>{
 
 
 
-    e.respondWith( respuesta );*/
+    e.respondWith( respuesta );
 
     // 2- Cache with Network fallback: primero intenta leer en el cache, si no lo encuentra va a la web a buscarlo.
     // Desventaja: se mezcla el APP_SHELL(recursos importantes para la web) con recursos dinamicos.

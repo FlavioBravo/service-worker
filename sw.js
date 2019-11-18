@@ -1,7 +1,4 @@
-
-
-//const CACHE_NAME = 'cache-1';
-const CACHE_STATIC_NAME ='static-v2';
+const CACHE_STATIC_NAME ='static-v6';
 const CACHE_DYNAMIC_NAME ='dynamic-v1';
 const CACHE_DYNAMIC_LIMIT = 50;
 
@@ -38,7 +35,9 @@ self.addEventListener('install', e =>{
                 '/index.html',
                 '/css/style.css',
                 '/img/main.jpg',
-                '/js/app.js'
+                '/js/app.js',
+                '/img/no-img.jpg',
+                '/pages/offline.html'
             ]);
 
         });
@@ -57,63 +56,37 @@ self.addEventListener('install', e =>{
 
 });
 
+self.addEventListener('activate', e => {
+
+
+    const respuesta = caches.keys().then( keys => {
+
+        keys.forEach( key => {
+
+            //statice-v4
+            if( key !== CACHE_STATIC_NAME && key.includes('static') ){
+                return caches.delete(key);
+            }
+
+        });
+    });
+
+
+    e.waitUntil( respuesta );
+});
+
 
 
 self.addEventListener('fetch', e =>{
 
-    //4- Cache with network update
-    // Cuando el Rendimiento es crítico
-    // Siempre estarán un paso atrás
-    if( e.request.url.includes('bootstrap') ){
-        return e.respondWith( caches.match( e.request ) );
-    }
 
-    const respuesta = caches.open( CACHE_STATIC_NAME ).then( cache => {
-
-        fetch( e.request ).then( newRes => cache.put( e.request, newRes ));
-        return cache.match( e.request );
-
-    });
-
-    e.respondWith( respuesta );
-
-    // 3-Network with Cache fallback: primero se va al web para obtener el recurso, si lo obtiene guardalo en el
-    //cache (DYNAMIC) y muestralo sino lo obtiene ve al cache a ver si existe allí.
-    // Desventaja: siempre trae el info mas actual, o sea siempre hace un consumo de datos y es mucho mas lenta
-    // que el cache first. Si estas en un internet lento va pasar segundos para traer info o error de lentitud. 
-    /*const respuesta = fetch( e.request ).then( res => {
-
-        if( !res ) return caches.match( e.request );
-        //console.log('Fetch', res );
-
-        caches.open( CACHE_DYNAMIC_NAME )
-            .then( cache => {
-                cache.put(e.request, res);
-                limpiarCache( CACHE_DYNAMIC_NAME, CACHE_DYNAMIC_LIMIT);
-            });
-
-
-        return res.clone();
-
-    }).catch( err => {
-        return caches.match( e.request );
-    });
-
-
-
-    e.respondWith( respuesta );*/
-
-    // 2- Cache with Network fallback: primero intenta leer en el cache, si no lo encuentra va a la web a buscarlo.
-    // Desventaja: se mezcla el APP_SHELL(recursos importantes para la web) con recursos dinamicos.
-    /*const respuesta = caches.match( e.request )
+    // 2- Cache with Network fallback
+    const respuesta = caches.match( e.request )
         .then( res => {
 
             if( res ) return res;
 
             // No existe el archivo
-            // Tengo que ir a la web
-            console.log('No existe', e.request.url );
-
 
             return fetch( e.request ).then( newResp => {
 
@@ -122,8 +95,18 @@ self.addEventListener('fetch', e =>{
                         cache.put( e.request, newResp);
                         limpiarCache( CACHE_DYNAMIC_NAME, 50);
                     });
+
                 return newResp.clone();
+            })
+            .catch( err => {
+
+                if( e.request.headers.get('accept').includes('text/html') ) {
+                    return caches.match('/pages/offline.html');
+                }
+                
             });
+
+
         });
 
 
@@ -131,12 +114,5 @@ self.addEventListener('fetch', e =>{
 
 
 
-    e.respondWith( respuesta );*/
-
-
-    // 1- Cache Only: Es usada cuando toda la app será servida desde el cache, no accedera a la web.
-    // Desventaja: se tiene que actualizar el SW para que se actualicen los archivos en la cache.
-    // Tambien si alguien intenta acceder a un archivo que no se encuentra en la cache, la app se caerá.
-    //e.respondWith( caches.match( e.request ) );
-
+    e.respondWith( respuesta );
 });
